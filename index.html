@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Коробка фантазий — конструктор историй</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #a1c4fd 100%);
+    min-height: 100vh; color: #333; padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 25px; }
+  header h1 { font-size: 2.4em; margin-bottom: 8px; }
+  header p { font-size: 1.05em; opacity: 0.8; }
+  .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab {
+    flex: 1; padding: 14px 20px; background: rgba(255,255,255,0.75);
+    border: none; border-radius: 12px; cursor: pointer; font-size: 1em;
+    font-weight: 600; transition: all 0.3s; min-width: 140px;
+  }
+  .tab.active { background: #667eea; color: white; transform: translateY(-3px); }
+  .tab:hover:not(.active) { background: rgba(255,255,255,0.95); }
+  .card {
+    background: rgba(255,255,255,0.95); border-radius: 24px; padding: 30px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15); margin-bottom: 20px;
+  }
+  .section { display: none; }
+  .section.active { display: block; }
+  h2 { color: #667eea; margin-bottom: 15px; font-size: 1.5em; }
+  .deck-title { color: #764ba2; font-size: 1.1em; margin-bottom: 12px; font-weight: 700; }
+  .deck { background: #f9f9f9; border-radius: 16px; padding: 18px; border: 2px solid #e8e8e8; margin-bottom: 15px; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .mini-card {
+    background: white; border: 2px solid #e0e0e0; border-radius: 12px;
+    padding: 10px; cursor: pointer; transition: all 0.2s; font-size: 0.9em; text-align: center;
+  }
+  .mini-card:hover { border-color: #667eea; transform: translateY(-3px); }
+  .mini-card.selected { background: #667eea; color: white; border-color: #667eea; }
+  .btn {
+    padding: 16px 36px; background: #667eea; color: white; border: none;
+    border-radius: 14px; font-size: 1.15em; font-weight: 700;
+    cursor: pointer; transition: all 0.3s; margin: 5px;
+  }
+  .btn:hover { background: #764ba2; transform: translateY(-3px); }
+  .btn.secondary { background: #f0f0f0; color: #333; }
+  .btn.secondary:hover { background: #e0e0e0; }
+  .btn.big { font-size: 1.4em; padding: 22px 50px; width: 100%; }
+  .story-box {
+    background: linear-gradient(135deg, #fff9e6 0%, #ffe6e6 100%);
+    border-left: 6px solid #667eea; padding: 30px; border-radius: 16px;
+    margin: 20px 0; text-align: center;
+  }
+  .story-box .situation { font-size: 1.6em; font-weight: 700; line-height: 1.6; }
+  .story-box .who { color: #e74c3c; }
+  .story-box .what { color: #3498db; }
+  .story-box .where { color: #27ae60; }
+  .helper-cards { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0; }
+  .helper-card {
+    background: #e3f2fd; border: 2px dashed #2196f3; border-radius: 12px;
+    padding: 12px 18px; font-size: 0.95em; color: #0d47a1; font-weight: 600; cursor: pointer;
+  }
+  .helper-card:hover { background: #bbdefb; }
+  .voice-btn {
+    background: #ffc107; color: #333; border: none; border-radius: 50%;
+    width: 44px; height: 44px; cursor: pointer; font-size: 1.3em;
+    margin: 5px; transition: all 0.2s;
+  }
+  .voice-btn:hover { background: #ffb300; transform: scale(1.1); }
+  .protocol-entry {
+    background: #f9f9f9; border-radius: 12px; padding: 15px 18px;
+    margin-bottom: 12px; border-left: 5px solid #667eea;
+  }
+  .protocol-entry .date { font-size: 0.85em; color: #888; margin-bottom: 5px; }
+  .protocol-entry .situation-text { font-weight: 600; color: #333; font-size: 1.05em; }
+  .empty { text-align: center; color: #888; padding: 40px; font-style: italic; }
+  .hint {
+    background: #fff3cd; border-left: 4px solid #ffc107;
+    padding: 12px 18px; border-radius: 8px; margin: 15px 0;
+    font-size: 0.95em; color: #856404;
+  }
+  .stats { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+  .stat { flex: 1; min-width: 140px; background: #f0f4ff; border-radius: 12px; padding: 15px; text-align: center; }
+  .stat .num { font-size: 2em; font-weight: 800; color: #667eea; }
+  .stat .label { font-size: 0.85em; color: #666; }
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.7em; }
+    .card { padding: 20px; }
+    .story-box .situation { font-size: 1.2em; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎁 Коробка фантазий</h1>
+    <p>Тяни карточки — придумывай небывалые истории!</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('play', event)">🎲 Играть</button>
+    <button class="tab" onclick="switchTab('manual', event)">🎯 Выбрать вручную</button>
+    <button class="tab" onclick="switchTab('protocol', event)">📋 Протокол</button>
+    <button class="tab" onclick="switchTab('about', event)">ℹ️ О методике</button>
+  </div>
+
+  <div id="play" class="section active">
+    <div class="card">
+      <h2>Вытяни три карточки</h2>
+      <p style="color:#666; margin-bottom:20px;">Нажми кнопку — и получи небывалую ситуацию. Придумай, как это может быть, и расскажи историю!</p>
+      <div class="stats">
+        <div class="stat"><div class="num" id="counter-who">40</div><div class="label">Карточек «Кто?»</div></div>
+        <div class="stat"><div class="num" id="counter-what">40</div><div class="label">Карточек «Что делает?»</div></div>
+        <div class="stat"><div class="num" id="counter-where">30</div><div class="label">Карточек «Где?»</div></div>
+      </div>
+      <button class="btn big" onclick="drawCards()">🎲 Вытянуть карточки</button>
+      <div id="story-result"></div>
+    </div>
+  </div>
+
+  <div id="manual" class="section">
+    <div class="card">
+      <h2>Выбери карточки вручную</h2>
+      <p style="color:#666; margin-bottom:15px;">Режим для логопеда: можно отработать конкретную тему.</p>
+      <div class="deck">
+        <div class="deck-title">👤 Кто? (выбери одного)</div>
+        <div class="cards-grid" id="manual-who"></div>
+      </div>
+      <div class="deck">
+        <div class="deck-title">🎬 Что делает? (выбери одно)</div>
+        <div class="cards-grid" id="manual-what"></div>
+      </div>
+      <div class="deck">
+        <div class="deck-title">📍 Где? (выбери одно)</div>
+        <div class="cards-grid" id="manual-where"></div>
+      </div>
+      <div style="text-align:center; margin-top:20px;">
+        <button class="btn" onclick="buildManualStory()">✨ Собрать историю</button>
+        <button class="btn secondary" onclick="resetManual()">🔄 Сбросить</button>
+      </div>
+      <div id="manual-result"></div>
+    </div>
+  </div>
+
+  <div id="protocol" class="section">
+    <div class="card">
+      <h2>📋 Протокол занятий</h2>
+      <p style="color:#666; margin-bottom:15px;">Все вытянутые истории сохраняются в браузере.</p>
+      <div id="protocol-list"></div>
+      <div style="margin-top:20px; text-align:center;">
+        <button class="btn secondary" onclick="clearProtocol()">🗑️ Очистить протокол</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="about" class="section">
+    <div class="card">
+      <h2>ℹ️ О методике</h2>
+      <p style="line-height:1.8; margin-bottom:15px;"><strong>Цель:</strong> развитие творческого воображения и связной речи у дошкольников с ОНР.</p>
+      <p style="line-height:1.8; margin-bottom:15px;"><strong>Как играть:</strong> ребёнок вытягивает по одной карточке из трёх колод. Получается абсурдная ситуация. Задача — объяснить, как это может быть, и рассказать историю.</p>
+      <p style="line-height:1.8; margin-bottom:15px;"><strong>Речевые опоры:</strong> после каждой карточки задаются вопросы-помощники:</p>
+      <div class="helper-cards">
+        <div class="helper-card">Кто это?</div>
+        <div class="helper-card">Какой он?</div>
+        <div class="helper-card">Что он делает?</div>
+        <div class="helper-card">Где это происходит?</div>
+        <div class="helper-card">Что случилось?</div>
+        <div class="helper-card">Чем всё закончилось?</div>
+      </div>
+      <p style="line-height:1.8; margin-top:15px;"><strong>Для кого:</strong> дети 5–7 лет с ОНР II–III уровня, с дизартрией.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const deckWho = ['🐰 Зайчик','🦊 Лиса','🐻 Медведь','🦉 Сова','🐉 Дракон','🤖 Робот','🧚 Фея','👧 Девочка','👦 Мальчик','🐱 Кот','🐶 Собака','🐸 Лягушка','🐢 Черепаха','🐟 Рыбка','🐙 Осьминог','🦋 Бабочка','🐝 Пчела','🦁 Лев','🐘 Слон','🐧 Пингвин','🤖 Робот-пылесос','🌵 Грустный кактус','☁️ Облако-путешественник','⭐ Звёздочка','🌙 Луна','☀️ Солнышко','🌈 Радуга','💧 Капелька','🍄 Грибочек','🌻 Подсолнух','🎈 Воздушный шарик','🧸 Плюшевый мишка','🪁 Воздушный змей','🚀 Ракета','🚂 Паровозик','🚗 Машинка','📚 Книжка','🎨 Кисточка','🎵 Нотка','🔑 Волшебный ключик'];
+
+const deckWhat = ['летит на зонтике','играет на барабане из лужи','прячет звёзды в карман','рисует радугу','танцует с ветром','поёт песню для луны','строит дом из облаков','ищет клад','считает капли дождя','разговаривает с цветами','катается на качелях','печёт пирог из снега','ловит солнечных зайчиков','плетёт корзину из травы','пускает мыльные пузыри','играет в прятки с эхом','собирает росу','лечит больное дерево','учит птиц танцевать','расчёсывает гриву льву','строит мост через реку','печёт блины на облаке','пишет письмо звёздам','разносит сны детям','играет на скрипке для рыб','сажает цветы на Луне','прячется под шляпой','катается на черепахе','летает на воздушном шаре','собирает улыбки','ищет потерянное время','разговаривает с эхом','красит небо','укладывает спать солнце','будит весну','поливает звёзды','плетёт сеть из паутинок','учит медведя танцевать вальс','строит замок из песка на облаке','играет в футбол с апельсином'];
+
+const deckWhere = ['в сахарной горе','на облаке','внутри часов','под кроватью','в космосе','на дне морском','в лесу','на Северном полюсе','в шоколадном замке','на Луне','в мыльном пузыре','внутри радуги','на крыше дома','в старом сундуке','в волшебном саду','на спине кита','в книжной стране','в чашке чая','в стране конфет','на пушистом облаке','в норе хоббита','на вершине горы','в подводном городе','в звёздном небе','внутри музыкальной шкатулки','на песчаном пляже','в зимнем лесу','в жаркой пустыне','в яблочном саду','в сказочной стране'];
+
+const helpers = [
+  { q: 'Кто это?', hint: 'Опиши героя: какой он?' },
+  { q: 'Что он делает?', hint: 'Это обычное действие или волшебное?' },
+  { q: 'Где это происходит?', hint: 'Опиши место.' },
+  { q: 'Что случилось?', hint: 'Была ли проблема?' },
+  { q: 'Кто помог?', hint: 'Кто пришёл на помощь?' },
+  { q: 'Чем всё закончилось?', hint: 'Придумай хороший конец.' }
+];
+
+let manualSelection = { who: null, what: null, where: null };
+
+function init() {
+  renderManual('manual-who', 'who', deckWho);
+  renderManual('manual-what', 'what', deckWhat);
+  renderManual('manual-where', 'where', deckWhere);
+  renderProtocol();
+  document.getElementById('counter-who').textContent = deckWho.length;
+  document.getElementById('counter-what').textContent = deckWhat.length;
+  document.getElementById('counter-where').textContent = deckWhere.length;
+}
+
+function renderManual(containerId, key, items) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'mini-card';
+    div.textContent = item;
+    div.onclick = () => {
+      manualSelection[key] = item;
+      container.querySelectorAll('.mini-card').forEach(c => c.classList.remove('selected'));
+      div.classList.add('selected');
+    };
+    container.appendChild(div);
+  });
+}
+
+function drawCards() {
+  const who = deckWho[Math.floor(Math.random() * deckWho.length)];
+  const what = deckWhat[Math.floor(Math.random() * deckWhat.length)];
+  const where = deckWhere[Math.floor(Math.random() * deckWhere.length)];
+  const situation = who + ' ' + what + ' ' + where;
+  const result = document.getElementById('story-result');
+  result.innerHTML = '<div class="story-box"><div style="font-size:0.9em;color:#888;margin-bottom:10px;">🎲 Твоя ситуация:</div><div class="situation"><span class="who">' + who + '</span><br><span class="what">' + what + '</span><br><span class="where">' + where + '</span></div></div>' +
+    '<div class="helper-cards">' + helpers.map(h => '<div class="helper-card" onclick="speak(\'' + h.q + ' ' + h.hint + '\')">' + h.q + '</div>').join('') + '</div>' +
+    '<div class="hint">💡 Придумай историю: как такое может быть? Что произошло? Чем всё закончилось?</div>' +
+    '<div style="text-align:center;margin-top:20px;"><button class="voice-btn" onclick="speak(\'' + situation + '\')">🔊</button>' +
+    '<button class="btn" onclick="saveToProtocol(\'' + who + '\',\'' + what + '\',\'' + where + '\')">💾 Сохранить</button>' +
+    '<button class="btn secondary" onclick="speak(\'' + situation + '. Придумай историю про это.\')">🎤 Озвучить задание</button></div>';
+}
+
+function buildManualStory() {
+  const who = manualSelection.who, what = manualSelection.what, where = manualSelection.where;
+  if (!who || !what || !where) { alert('Выбери по одной карточке из каждой колоды!'); return; }
+  const situation = who + ' ' + what + ' ' + where;
+  const result = document.getElementById('manual-result');
+  result.innerHTML = '<div class="story-box"><div class="situation"><span class="who">' + who + '</span><br><span class="what">' + what + '</span><br><span class="where">' + where + '</span></div></div>' +
+    '<div class="helper-cards">' + helpers.map(h => '<div class="helper-card" onclick="speak(\'' + h.q + ' ' + h.hint + '\')">' + h.q + '</div>').join('') + '</div>' +
+    '<div style="text-align:center;margin-top:20px;"><button class="voice-btn" onclick="speak(\'' + situation + '\')">🔊</button>' +
+    '<button class="btn" onclick="saveToProtocol(\'' + who + '\',\'' + what + '\',\'' + where + '\')">💾 Сохранить</button></div>';
+}
+
+function resetManual() {
+  manualSelection = { who: null, what: null, where: null };
+  document.querySelectorAll('#manual .mini-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('manual-result').innerHTML = '';
+}
+
+function saveToProtocol(who, what, where) {
+  const entries = JSON.parse(localStorage.getItem('fantazior_protocol') || '[]');
+  entries.unshift({ date: new Date().toLocaleString('ru-RU'), who: who, what: what, where: where });
+  localStorage.setItem('fantazior_protocol', JSON.stringify(entries));
+  renderProtocol();
+  alert('✅ Сохранено в протокол!');
+}
+
+function renderProtocol() {
+  const entries = JSON.parse(localStorage.getItem('fantazior_protocol') || '[]');
+  const list = document.getElementById('protocol-list');
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="empty">Пока нет записей. Вытяни карточки и сохрани историю.</div>';
+    return;
+  }
+  list.innerHTML = entries.map(e => '<div class="protocol-entry"><div class="date">' + e.date + '</div><div class="situation-text">' + e.who + ' ' + e.what + ' ' + e.where + '</div></div>').join('');
+}
+
+function clearProtocol() {
+  if (confirm('Очистить весь протокол?')) {
+    localStorage.removeItem('fantazior_protocol');
+    renderProtocol();
+  }
+}
+
+function speak(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ru-RU'; u.rate = 0.85; u.pitch = 1.1;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+function switchTab(tab, e) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  if (e && e.target) e.target.classList.add('active');
+}
+
+init();
+</script>
+</body>
+</html>
